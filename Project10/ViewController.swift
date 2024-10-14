@@ -86,10 +86,18 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
             self?.collectionView.reloadData()
         })
         
+        ac.addAction(UIAlertAction(title: "Sil", style: .destructive) { [weak self] _ in
+                self?.people.remove(at: indexPath.item) // İlgili kişiyi diziden kaldır
+                self?.collectionView.deleteItems(at: [indexPath]) // CollectionView'dan öğeyi sil
+            })
+
+        
       
         ac.addAction(UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler: nil))
         present(ac, animated: true)
         
     }
+    
+    
 }
 
