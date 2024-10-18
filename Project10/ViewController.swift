@@ -14,6 +14,13 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.camera, target: self, action: #selector(photoAddClicked))
+        
+        let defaults = UserDefaults.standard
+        if let savedPeople = defaults.object(forKey: "people") as? Data{
+            if let decodePeople = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(savedPeople)  as? [Person] {
+                people = decodePeople
+            }
+        }
     }
     
     @objc func photoAddClicked(){
@@ -63,6 +70,7 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         let person = Person(name: "Unknow", image: imageName)
         people.append(person)
         collectionView.reloadData()
+        save()
         dismiss(animated: true)
     }
     
@@ -83,6 +91,7 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         ac.addAction(UIAlertAction(title: "Rename", style: UIAlertAction.Style.default) { [weak self , weak ac] _ in
             guard let newName = ac?.textFields?[0].text  else { return }
             person.name = newName
+            self?.save()
             self?.collectionView.reloadData()
         })
         
@@ -96,6 +105,14 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         ac.addAction(UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler: nil))
         present(ac, animated: true)
         
+    }
+    
+    
+    func save(){
+        if let savedData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: false) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "people")
+        }
     }
     
     
