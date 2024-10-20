@@ -16,11 +16,16 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         navigationController?.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.camera, target: self, action: #selector(photoAddClicked))
         
         let defaults = UserDefaults.standard
-        if let savedPeople = defaults.object(forKey: "people") as? Data{
-            if let decodePeople = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(savedPeople)  as? [Person] {
-                people = decodePeople
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            let jsonDecoder = JSONDecoder()
+            
+            do {
+                people = try jsonDecoder.decode([Person].self, from: savedPeople)
+            } catch {
+                print("Failed to load people")
             }
         }
+       
     }
     
     @objc func photoAddClicked(){
@@ -69,8 +74,9 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         }
         let person = Person(name: "Unknow", image: imageName)
         people.append(person)
+        save2()
         collectionView.reloadData()
-        save()
+        
         dismiss(animated: true)
     }
     
@@ -91,7 +97,7 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         ac.addAction(UIAlertAction(title: "Rename", style: UIAlertAction.Style.default) { [weak self , weak ac] _ in
             guard let newName = ac?.textFields?[0].text  else { return }
             person.name = newName
-            self?.save()
+            self?.save2()
             self?.collectionView.reloadData()
         })
         
@@ -112,6 +118,16 @@ class ViewController: UICollectionViewController , UIImagePickerControllerDelega
         if let savedData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: false) {
             let defaults = UserDefaults.standard
             defaults.set(savedData, forKey: "people")
+        }
+    }
+    
+    func save2(){
+        let jsonEncoder = JSONEncoder()
+        if let saveData = try? jsonEncoder.encode(people) {
+            let defaults = UserDefaults.standard
+            defaults.set(saveData, forKey: "people")
+        } else {
+            print("failed to save people")
         }
     }
     
